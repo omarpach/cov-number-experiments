@@ -9,26 +9,6 @@ from algorithms import (
 )  # Assuming you saved the algorithm in algorithm.py
 
 
-def load_mnist_subset(n_samples: int = 2000) -> np.ndarray:
-    """
-    Fetches the MNIST dataset and returns a normalized subset.
-    Each image becomes a 784-dimensional point (28x28 flattened).
-    """
-    print("Downloading/Loading MNIST dataset (this might take a few seconds)...")
-    # Fetch MNIST from OpenML
-    X, _ = fetch_openml(
-        "mnist_784", version=1, return_X_y=True, as_frame=False, parser="auto"
-    )
-
-    # 1. Normalize pixels from [0, 255] to [0.0, 1.0]
-    # This keeps Euclidean distances mathematically stable
-    X = X / 255.0
-
-    # 2. Subsample to n_samples to keep the algorithm fast for testing
-    indices = np.random.choice(X.shape[0], n_samples, replace=False)
-    return X[indices]
-
-
 def plot_cover_gallery(cover_points: np.ndarray, title: str):
     """Plots a grid of the images that made it into the eta-cover."""
     n_images = min(len(cover_points), 25)  # Plot up to 25 images
@@ -46,45 +26,6 @@ def plot_cover_gallery(cover_points: np.ndarray, title: str):
 
     plt.tight_layout()
     plt.show()
-
-
-def get_exact_min_max_distances(
-    points: np.ndarray, batch_size: int = 2000
-) -> tuple[float, float]:
-    """
-    Computes the exact global minimum and maximum pairwise distances
-    without storing the full distance matrix in memory.
-    """
-    N = points.shape[0]
-    global_min = np.inf
-    global_max = -np.inf
-
-    # Iterate through the data in manageable chunks
-    for i in range(0, N, batch_size):
-        chunk = points[i : i + batch_size]
-
-        # We only compare the chunk to points from 'i' onwards to save compute.
-        distances = dist.cdist(chunk, points[i:], metric="euclidean")
-
-        if distances.size > 0:
-            # 1. Get the MAX safely BEFORE we alter the matrix
-            # (A self-distance of 0.0 will never be the maximum)
-            local_max = np.max(distances)
-            if local_max > global_max:
-                global_max = local_max
-
-            # 2. Hide the self-distances with infinity
-            # (Because chunk[0] == points[i], the self-distances sit perfectly on the diagonal)
-            np.fill_diagonal(distances, np.inf)
-
-            # 3. Now get the MIN safely
-            local_min = np.min(distances)
-            if local_min < global_min:
-                global_min = local_min
-
-        print(f"Processed up to row {min(i + batch_size, N)} / {N}...")
-
-    return float(global_min), float(global_max)
 
 
 if __name__ == "__main__":
