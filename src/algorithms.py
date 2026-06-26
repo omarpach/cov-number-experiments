@@ -1,43 +1,36 @@
 import numpy as np
-from scipy.spatial.distance import cdist
+from tqdm import tqdm
 
 
 def uncovered_first(
-    points: np.ndarray,
-    metric_name: str,
+    dist_matrix: np.ndarray,
     eta: float,
-) -> np.ndarray:
+) -> list[int]:
     """
-    Implements the Uncovered-First eta-Cover Construction algorithm.
+    Implements the Uncovered-First eta-Cover algorithm using a precomputed distance matrix.
 
     Returns:
-        np.ndarray: A 2D array containing the points that form the eta-cover Q.
+        list[int]: The indices of the points that form the eta-cover Q.
     """
-    num_points = points.shape[0]
+    num_points = dist_matrix.shape[0]
     if num_points == 0:
-        return np.array([])
+        return []
 
-    # Q_indices stores the row indices of points added to the cover.
-    # We initialize Q with x^1 (index 0 in Python)
     Q_indices = [0]
 
-    # for i = 2 to m do (in Python, indices 1 to m-1)
-    for i in range(1, num_points):
-        candidate_point = points[i : i + 1]  # Sliced as a 2D array (1, d) for cdist
-        current_cover = points[Q_indices]  # Sliced as (k, d) where k is size of Q
+    # Track the minimum distance from every point to the current cover Q.
+    # Initially, the cover only contains the first point (index 0).
+    min_dist_to_Q = dist_matrix[0].copy()
 
-        # Calculate distances from the candidate point to ALL points currently in Q
-        # cdist returns a matrix of shape (1, k), we flatten it to 1D
-        distances_to_Q = cdist(
-            candidate_point, current_cover, metric=metric_name
-        ).flatten()
-
-        # \rho(x^i, Q) is the minimum distance to the set Q
-        rho = np.min(distances_to_Q)
-
-        # if \rho(x^i, Q) > \eta then Q <- Q U {x^i}
-        if rho > eta:
+    for i in tqdm(
+        range(1, num_points), desc=f"Covering (\u03b7={eta:.2f})", leave=False, ncols=80
+    ):
+        # If the minimum distance to the cover is greater than eta, it's uncovered
+        if min_dist_to_Q[i] > eta:
             Q_indices.append(i)
 
-    # Return the actual points making up the cover
-    return points[Q_indices]
+            # Vectorized update: The new minimum distance to the cover for all points
+            # is the element-wise minimum of the old distances and the distances to the new point 'i'.
+            min_dist_to_Q = np.minimum(min_dist_to_Q, dist_matrix[i])
+
+    return Q_indices

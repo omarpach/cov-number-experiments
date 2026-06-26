@@ -2,7 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # --- 1. Load and Prep the Data ---
-df = pd.read_csv("results/experiment_log.csv")
+# Point this to your new CSV file
+df = pd.read_csv("results/experiment_log_v2.csv")
 
 # Sort by eta so the lines draw cleanly from left to right
 df = df.sort_values(by="eta")
@@ -11,9 +12,9 @@ df = df.sort_values(by="eta")
 plt.figure(figsize=(9, 6))
 
 # --- 3. Group and Plot ---
-# df.groupby("num_points") automatically splits your dataframe into separate chunks
-# based on the unique values in the 'num_points' column (your n and n' experiments)
-for n_points, group_data in df.groupby("num_points"):
+# NEW: Group by BOTH the number of points and the seed.
+# This ensures each unique run gets its own clean, continuous line.
+for (n_points, seed), group_data in df.groupby(["num_points", "seed"]):
     plt.plot(
         group_data["eta"],
         group_data["covering_number"],
@@ -21,7 +22,7 @@ for n_points, group_data in df.groupby("num_points"):
         linestyle="-",
         linewidth=2,
         markersize=6,
-        label=f"$N = {n_points:,}$",  # Adds commas to large numbers in the legend
+        label=f"$N = {n_points:,}$ (Seed: {seed})",
     )
 
 # --- 4. Formatting ---
@@ -29,12 +30,12 @@ plt.title("log $\\eta$-Cover Size vs. Radius ($\\eta$)", fontsize=14, fontweight
 plt.xlabel("Radius $\\eta$", fontsize=12)
 plt.ylabel("log Covering Number $|Q|$", fontsize=12)
 
-# Add the legend to differentiate the two lines
-plt.legend(title="Dataset Size", fontsize=11, title_fontsize=12)
+# Update the legend title
+plt.legend(title="Dataset Size & Seed", fontsize=11, title_fontsize=12)
 
 plt.grid(True, which="both", linestyle="--", alpha=0.6)
 
-# Uncomment this if the covering numbers drop off too steeply to see the details
+# Leave the log scale enabled since your covers will range from 1 to 20,000
 plt.yscale("log")
 
 plt.tight_layout()
