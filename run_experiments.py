@@ -11,7 +11,7 @@ def main():
 
     # 2. Setup Data
     dataset_name = "MNIST_Subset"
-    N = 20000
+    N = 10000
     points = load_mnist_subset(n_samples=N)
     D = points.shape[1]
 
