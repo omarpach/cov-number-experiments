@@ -4,15 +4,16 @@ from typing import Union
 
 
 class ExperimentLogger:
-    def __init__(self, filepath: Union[str, Path] = "results/experiment_log.csv"):
+    def __init__(self, filepath: Union[str, Path] = "results/experiment_log_v3.csv"):
         self.filepath = Path(filepath)
         self.filepath.parent.mkdir(parents=True, exist_ok=True)
 
         self.fieldnames = [
             "dataset",
-            "seed",  # NEW: Tracking the random seed
+            "seed",
             "num_points",
             "dimensions",
+            "algorithm",
             "eta",
             "covering_number",
             "runtime_seconds",
@@ -29,6 +30,7 @@ class ExperimentLogger:
         seed: int,
         n: int,
         d: int,
+        algorithm: str,
         eta: float,
         cov_num: int,
         runtime: float,
@@ -41,6 +43,7 @@ class ExperimentLogger:
                     "seed": seed,
                     "num_points": n,
                     "dimensions": d,
+                    "algorithm": algorithm,
                     "eta": eta,
                     "covering_number": cov_num,
                     "runtime_seconds": runtime,

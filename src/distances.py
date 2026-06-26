@@ -73,7 +73,7 @@ def generate_eta_range(
         return np.array([eta_max])
 
     # Generate logarithmically spaced values
-    etas = np.geomspace(eta_min, eta_max, num=num_steps)
+    etas = np.linspace(eta_min, eta_max, num=num_steps)
 
     # Reverse the array so the largest etas are first.
     # A larger eta produces a smaller cover, meaning the algorithm runs much faster.
