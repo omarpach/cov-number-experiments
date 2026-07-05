@@ -4,7 +4,7 @@ import numpy as np
 from scipy.spatial.distance import pdist, squareform
 from src.logger import ExperimentLogger
 from src.datasets import load_dataset
-from src.distances import generate_eta_range
+from src.distances import generate_eta_range, get_distance_matrix, get_exact_min_max_distances
 from src.algorithms import uncovered_first, farthest_first, greedy
 
 
@@ -39,7 +39,7 @@ def main():
             matrix_start = time.perf_counter()
 
             # Standard 64-bit matrix computation
-            dist_matrix = squareform(pdist(points, metric="euclidean"))
+            dist_matrix = get_distance_matrix(D)
 
             matrix_end = time.perf_counter()
             print(f"Matrix computed in {matrix_end - matrix_start:.2f}s")

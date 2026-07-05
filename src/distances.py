@@ -1,9 +1,10 @@
 import numpy as np
-from scipy.spatial.distance import cdist
+import torch
+from scipy.spatial.distance import cdist, squareform, pdist
 
 
 def get_exact_min_max_distances(
-    points: np.ndarray, batch_size: int = 2000
+    points: np.ndarray, batch_size: int = 2000, use_gpu: bool = True
 ) -> tuple[float, float]:
     """
     Computes the exact global minimum and maximum pairwise distances
@@ -13,6 +14,36 @@ def get_exact_min_max_distances(
     global_min = np.inf
     global_max = -np.inf
 
+    if use_gpu:
+        try:
+            if torch.cuda.is_available():
+                points_tensor = torch.tensor(points, dtype=torch.float32, device="cuda")
+                
+                for i in range(0, N, batch_size):
+                    chunk = points_tensor[i : i + batch_size]
+                    
+                    # We only compare the chunk to points from 'i' onwards to save compute.
+                    distances = torch.cdist(chunk, points_tensor[i:])
+                    
+                    if distances.numel() > 0:
+                        local_max = torch.max(distances).item()
+                        if local_max > global_max:
+                            global_max = local_max
+                            
+                        # PyTorch's fill_diagonal_ handles the non-square sub-matrix perfectly
+                        distances.fill_diagonal_(float('inf'))
+                        
+                        local_min = torch.min(distances).item()
+                        if local_min < global_min:
+                            global_min = local_min
+                            
+                    print(f"Processed up to row {min(i + batch_size, N)} / {N}...")
+                    
+                return float(global_min), float(global_max)
+        except ImportError:
+            pass
+
+    # CPU Fallback
     # Iterate through the data in manageable chunks
     for i in range(0, N, batch_size):
         chunk = points[i : i + batch_size]
@@ -80,3 +111,29 @@ def generate_eta_range(
     # Testing largest-first gives you immediate output in your logs before
     # hitting the computationally heavy small-eta runs.
     return etas[::-1]
+
+def get_distance_matrix(points: np.ndarray, use_gpu: bool = True) -> np.ndarray:
+    """
+    Computes the full NxN pairwise Euclidean distance matrix.
+    Leverages PyTorch/CUDA if available for a massive speedup on high-dimensional data.
+    """
+    if use_gpu:
+        try:
+            import torch
+            if torch.cuda.is_available():
+                # Convert to float32 to halve memory usage (20GB -> 10GB for 50k points)
+                # and drastically improve GPU throughput.
+                points_tensor = torch.tensor(points, dtype=torch.float32, device="cuda")
+                
+                # Perform the highly parallelized computation
+                dist_matrix_tensor = torch.cdist(points_tensor, points_tensor)
+                
+                # Pull the result back to system RAM as a standard NumPy array
+                return dist_matrix_tensor.cpu().numpy()
+            else:
+                print("Warning: CUDA is not available. Falling back to CPU calculation.")
+        except ImportError:
+            print("Warning: PyTorch is not installed. Falling back to CPU calculation.")
+
+    # Fallback to the standard SciPy CPU calculation (Float64)
+    return squareform(pdist(points, metric="euclidean"))
