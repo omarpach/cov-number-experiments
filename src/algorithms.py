@@ -75,9 +75,12 @@ def farthest_first(
 def greedy(
     dist_matrix: np.ndarray,
     eta: float,
-) -> list[int]:
+) -> tuple[list[int], int]:
     """
     Implements the Greedy eta-Cover construction based on static eta-ball sizes.
+
+    Returns:
+        tuple[list[int], int]: The indices of the points that form the eta-cover Q and the size of the biggest eta-ball.
     """
     num_points = dist_matrix.shape[0]
     if num_points == 0:
@@ -90,7 +93,7 @@ def greedy(
 
     # 2. Sort the point indices by their ball size in descending order
     # argsort sorts ascending, so we use [::-1] to reverse it
-    sorted_indices = np.argsort(ball_sizes)[::-1]
+    sorted_indices = np.argsort(ball_sizes, descending=True)
 
     # Initialize Q with the point that has the largest ball
     first_idx = sorted_indices[0]
@@ -111,4 +114,4 @@ def greedy(
             Q_indices.append(candidate_idx)
             min_dist_to_Q = np.minimum(min_dist_to_Q, dist_matrix[candidate_idx])
 
-    return Q_indices
+    return Q_indices, int(ball_sizes[Q_indices])
