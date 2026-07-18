@@ -114,4 +114,4 @@ def greedy(
             Q_indices.append(candidate_idx)
             min_dist_to_Q = np.minimum(min_dist_to_Q, dist_matrix[candidate_idx])
 
-    return Q_indices, int(ball_sizes[Q_indices])
+    return Q_indices, int(ball_sizes[first_idx])
