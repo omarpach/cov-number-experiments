@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.datasets import fetch_openml, make_swiss_roll, make_moons, make_circles
+from sklearn.preprocessing import Normalizer
 
 
 def load_dataset(name: str, n_samples: int = 2000, seed: int = 42, image_size: int = 64) -> np.ndarray:
@@ -21,6 +22,7 @@ def load_dataset(name: str, n_samples: int = 2000, seed: int = 42, image_size: i
             "mnist_784", version=1, return_X_y=True, as_frame=False, parser="auto"
         )
         X = X / 255.0
+        X = Normalizer().fit_transform(X)
         indices = rng.choice(X.shape[0], n_samples, replace=False)
         return X[indices]
 
@@ -30,6 +32,7 @@ def load_dataset(name: str, n_samples: int = 2000, seed: int = 42, image_size: i
             "Fashion-MNIST", version=1, return_X_y=True, as_frame=False, parser="auto"
         )
         X = X / 255.0
+        X = Normalizer().fit_transform(X)
         indices = rng.choice(X.shape[0], n_samples, replace=False)
         return X[indices]
 
@@ -37,6 +40,7 @@ def load_dataset(name: str, n_samples: int = 2000, seed: int = 42, image_size: i
         print(f"Generating 3D Swiss Roll dataset (N={n_samples})...")
         X, _ = make_swiss_roll(n_samples=n_samples, random_state=seed)
         X = (X - np.min(X)) / (np.max(X) - np.min(X))
+        X = Normalizer().fit_transform(X)
         return X
 
     elif name == "Moons":
@@ -44,6 +48,7 @@ def load_dataset(name: str, n_samples: int = 2000, seed: int = 42, image_size: i
         # noise adds realistic scatter to the curves
         X, _ = make_moons(n_samples=n_samples, noise=0.1, random_state=seed)
         X = (X - np.min(X)) / (np.max(X) - np.min(X))
+        X = Normalizer().fit_transform(X)
         return X
 
     elif name == "Circles":
@@ -53,6 +58,7 @@ def load_dataset(name: str, n_samples: int = 2000, seed: int = 42, image_size: i
             n_samples=n_samples, factor=0.5, noise=0.05, random_state=seed
         )
         X = (X - np.min(X)) / (np.max(X) - np.min(X))
+        X = Normalizer().fit_transform(X)
         return X
 
     elif name == "CelebA":
