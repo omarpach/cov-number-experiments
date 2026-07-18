@@ -93,7 +93,7 @@ def greedy(
 
     # 2. Sort the point indices by their ball size in descending order
     # argsort sorts ascending, so we use [::-1] to reverse it
-    sorted_indices = np.argsort(ball_sizes, descending=True)
+    sorted_indices = np.argsort(ball_sizes)[::-1]
 
     # Initialize Q with the point that has the largest ball
     first_idx = sorted_indices[0]
