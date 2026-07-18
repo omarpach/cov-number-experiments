@@ -16,6 +16,7 @@ class ExperimentLogger:
             "algorithm",
             "eta",
             "covering_number",
+            "lower_bound",
             "runtime_seconds",
         ]
 
@@ -33,6 +34,7 @@ class ExperimentLogger:
         algorithm: str,
         eta: float,
         cov_num: int,
+        lower_bound: int,
         runtime: float,
     ):
         with open(self.filepath, mode="a", newline="") as f:
@@ -46,6 +48,7 @@ class ExperimentLogger:
                     "algorithm": algorithm,
                     "eta": eta,
                     "covering_number": cov_num,
+                    "lower_bound": lower_bound,
                     "runtime_seconds": runtime,
                 }
             )
